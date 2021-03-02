@@ -144,7 +144,7 @@ void remove_csv_footer(string fund_name)
     for (auto line : lines)
     {
         vector<string> line_split = split_to_vec(line, ',');
-        if (line_split.size() > 1)
+        if (line_split.size() == split_to_vec(lines[0], ',').size())
         {
             for (size_t j = 0; j < line_split.size(); ++j)
             {
@@ -185,9 +185,9 @@ void write_to_csv_file(string file_name, string output)
 
 int main()
 {
-    map<string, vector<string>> raw_fund_data = csv_to_map("ARK_INNOVATION_ETF_ARKK_HOLDINGS.csv");
-
     remove_csv_footer("arkk");
+    map<string, vector<string>> raw_fund_data = csv_to_map("arkk.csv");
+
     // Pointer to SQLite connection
     sqlite3* db = open_db_connection("noah.db");
 
