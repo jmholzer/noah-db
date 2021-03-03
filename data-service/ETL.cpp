@@ -1,50 +1,61 @@
 #include <iostream>
+using std::cout;
+using std::endl;
+
 #include <fstream>
 #include <streambuf>
 
 #include <map>
-#include <string>
-#include <vector>
-#include <iterator>
-#include <regex>
-#include "sqlite3.h"
+using std::map;
 
-#include "ETL_sql.h"
+#include <string>
+using std::string;
+
+#include <vector>
+using std::vector;
+
+#include <regex>
 
 #include <ctime>
 using std::time;
 using std::time_t;
 
-using std::cout;
-using std::endl;
-using std::map;
-using std::string;
-using std::vector;
+#include <iterator>
+using std::back_inserter;
 
-string file_to_string(const string &filename);
-vector<string> split_to_vec(const string &str, const char &delimiter);
+#include "sqlite3.h"
+#include "ETL_sql.h"
+
+string read_file(const string &filename);
+vector<string> split(const string &str, const char &delimiter);
 void write_to_csv_file(string file_name, string output);
 map<string, vector<string>> csv_to_map(const string &file_name);
 void db_holdings_input(sqlite3 *db, map<string, vector<string>> raw_fund_data);
 int db_input(const string &in_file_name, sqlite3 *db, const string &fund_format);
 sqlite3 *open_db_connection(const string &db_file_name);
+bool check_empty_csv_row(const string &line, const string &headers);
 
-string file_to_string(const string &filename)
+string read_file(const string &in_file_name)
 {
-    std::ifstream in(filename);
+    std::ifstream in_file(in_file_name);
 
-    string result((std::istreambuf_iterator<char>(in)),
-                  std::istreambuf_iterator<char>());
+    if (!in_file)
+    {
+        std::cerr << "file open failed"
+                  << "\n";
+    }
 
-    return result;
+    string out((std::istreambuf_iterator<char>(in_file)),
+               std::istreambuf_iterator<char>());
+
+    return out;
 }
 
-vector<string> split_to_vec(const string &str, const char &delimiter)
+template <class C>
+void split(const string &str, const char &delimiter, C &out)
 {
-    vector<string> result;
-
     string temp_str;
-    
+
     for (char c : str)
     {
         if (c != delimiter)
@@ -53,39 +64,58 @@ vector<string> split_to_vec(const string &str, const char &delimiter)
         }
         else
         {
-            result.push_back(temp_str);
+            out.insert(out.end(), temp_str);
             temp_str = "";
         }
     }
-    result.push_back(temp_str);
 
-    return result;
+    out.insert(out.end(), temp_str);
+}
+
+void write_to_csv_file(const string &file_name, const string &output)
+{
+    std::ofstream output_file{file_name};
+    if (!output_file)
+    {
+        std::cerr << "file open failed"
+                  << "\n";
+    }
+    output_file << output;
+    output_file.close();
 }
 
 map<string, vector<string>> csv_to_map(const string &file_name)
 {
+
     map<string, vector<string>> csv_map;
 
-    string file_string = file_to_string(file_name);
-    vector<string> file_vec = split_to_vec(file_string, '\n');
+    /*
+    string file_str = read_file(file_name);
+    vector<string> file_vc = split(file_string, '\n');
 
     // Initialise the map with pairs of header values and empty vectors.
-    vector<string> headers = split_to_vec(file_vec[0], ',');
+    vector<string> headers = split(file[0], ',');
 
     for (size_t i = 0; i != headers.size(); ++i)
         csv_map.insert({headers[i], vector<string>()});
 
     // Fill the vectors associated with each header with the corresponding
     // values, start iterating from 1 to avoid reading header into vectors.
-    for (size_t i = 1; i != file_vec.size(); ++i)
+    for (size_t i = 1; i != file.size(); ++i)
     {
-        vector<string> line_vec = split_to_vec(file_vec[i], ',');
+        vector<string> line = split(file[i], ',');
 
-        for (size_t j = 0; j != headers.size(); ++j)
+        if (line.size() == headers.size())
         {
-            csv_map[headers[j]].push_back(line_vec[j]);
+            for (size_t j = 0; j != headers.size(); ++j)
+                csv_map[headers[j]].push_back(line[j]);
+        }
+        else
+        {
+            continue;
         }
     }
+    */
 
     return csv_map;
 }
@@ -136,65 +166,25 @@ sqlite3 *open_db_connection(const string &db_file_name)
     return db;
 }
 
-void remove_csv_footer(string fund_name)
-{
-    string file_string = file_to_string("ARK_INNOVATION_ETF_ARKK_HOLDINGS.csv");
-    vector<string> lines = split_to_vec(file_string, '\n');
-    string result;
-    for (auto line : lines)
-    {
-        vector<string> line_split = split_to_vec(line, ',');
-        if (line_split.size() == split_to_vec(lines[0], ',').size())
-        {
-            for (size_t j = 0; j < line_split.size(); ++j)
-            {
-                string word = line_split[j];
-                if (word.size() > 0)
-                {
-                    result += word;
-                    if (j < line_split.size() - 1)
-                    {
-                        result += ",";
-                    }
-                    else
-                    {
-                        result += "\n";
-                    }
-                }
-            }
-        }
-    }
-    // this is retarded 
-    std::regex new_lines_re("\n$");
-    auto ouput = std::regex_replace(result, new_lines_re, "");
-    write_to_csv_file(fund_name, ouput);
-}
-
-void write_to_csv_file(string file_name, string output)
-{
-    string csv_name = file_name + ".csv";
-    std::ofstream output_file{csv_name};
-    if (!output_file)
-    {
-        std::cerr << "file open failed"
-                  << "\n";
-    }
-    output_file << output;
-    output_file.close();
-}
-
 int main()
 {
-    remove_csv_footer("arkk");
-    map<string, vector<string>> raw_fund_data = csv_to_map("arkk.csv");
+    //map<string, vector<string>> raw_fund_data = csv_to_map("ARK_INNOVATION_ETF_ARKK_HOLDINGS.csv");
 
     // Pointer to SQLite connection
-    sqlite3* db = open_db_connection("noah.db");
+    //sqlite3 *db = open_db_connection("noah.db");
 
-    db_holdings_input(db, raw_fund_data);
+    //db_holdings_input(db, raw_fund_data);
 
     // Close the connection
-    sqlite3_close(db);
+    //sqlite3_close(db);
+
+    string test = "test,123,abc,456";
+
+    vector<string> result;
+    split<vector<string>>(test, ',', result);
+
+    for(vector<string>::iterator it = result.begin(); it != result.end(); ++it)
+        cout << *it << " ";
 
     return 0;
 }
