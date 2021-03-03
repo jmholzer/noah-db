@@ -1,2 +1,7 @@
-data-service/data-service/*
-data-service/.vscode/settings.json
+data-service/.vscode/*
+data-service/libcurl/*
+data-service/ARK_INNOVATION_ETF_ARKK_HOLDINGS.csv
+data-service/fund-insert-test.cpp
+data-service/sqlite3/*
+data-service/sqlite-db/sqlite3.exe
+data-service/*.exe
