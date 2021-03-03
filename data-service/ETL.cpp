@@ -22,18 +22,19 @@ using std::time_t;
 
 #include <iterator>
 using std::back_inserter;
+using std::next;
 
 #include "sqlite3.h"
 #include "ETL_sql.h"
 
-string read_file(const string &filename);
-vector<string> split(const string &str, const char &delimiter);
-void write_to_csv_file(string file_name, string output);
+string read_file(const string &in_file_name);
+template <class C> void split(const string &str, const char &delimiter, C &out);
+void write_to_csv_file(const string &file_name, const string &output);
 map<string, vector<string>> csv_to_map(const string &file_name);
 void db_holdings_input(sqlite3 *db, map<string, vector<string>> raw_fund_data);
 int db_input(const string &in_file_name, sqlite3 *db, const string &fund_format);
 sqlite3 *open_db_connection(const string &db_file_name);
-bool check_empty_csv_row(const string &line, const string &headers);
+
 
 string read_file(const string &in_file_name)
 {
@@ -89,21 +90,30 @@ map<string, vector<string>> csv_to_map(const string &file_name)
 
     map<string, vector<string>> csv_map;
 
-    /*
-    string file_str = read_file(file_name);
-    vector<string> file_vc = split(file_string, '\n');
+    string in_file_contents = read_file(file_name);
+    vector<string> in_rows;
+    split<vector<string>>(in_file_contents, '\n', in_rows);
 
     // Initialise the map with pairs of header values and empty vectors.
-    vector<string> headers = split(file[0], ',');
+    vector<string> headers;
+    split<vector<string>>(*in_rows.begin(), ',', headers);
 
-    for (size_t i = 0; i != headers.size(); ++i)
-        csv_map.insert({headers[i], vector<string>()});
+    for (vector<string>::iterator it = headers.begin(); it != headers.end(); ++it)
+        csv_map.insert({*it, vector<string>()});
 
     // Fill the vectors associated with each header with the corresponding
     // values, start iterating from 1 to avoid reading header into vectors.
-    for (size_t i = 1; i != file.size(); ++i)
+    //int counter = 2;
+    for (vector<string>::iterator it = next(in_rows.begin()); it != in_rows.end(); ++it)
     {
-        vector<string> line = split(file[i], ',');
+        vector<string> line;
+        split(*it, ',', line);
+
+        //cout << "Row " << counter << ": ";
+        //for(size_t i = 0; i != line.size(); ++i)
+        //    cout << line[i] << " ";
+        //cout << endl;
+        //counter++;
 
         if (line.size() == headers.size())
         {
@@ -115,7 +125,6 @@ map<string, vector<string>> csv_to_map(const string &file_name)
             continue;
         }
     }
-    */
 
     return csv_map;
 }
@@ -168,23 +177,15 @@ sqlite3 *open_db_connection(const string &db_file_name)
 
 int main()
 {
-    //map<string, vector<string>> raw_fund_data = csv_to_map("ARK_INNOVATION_ETF_ARKK_HOLDINGS.csv");
+    map<string, vector<string>> raw_fund_data = csv_to_map("ARK_INNOVATION_ETF_ARKK_HOLDINGS.csv");
 
     // Pointer to SQLite connection
-    //sqlite3 *db = open_db_connection("noah.db");
+    sqlite3 *db = open_db_connection("noah.db");
 
-    //db_holdings_input(db, raw_fund_data);
+    db_holdings_input(db, raw_fund_data);
 
     // Close the connection
-    //sqlite3_close(db);
-
-    string test = "test,123,abc,456";
-
-    vector<string> result;
-    split<vector<string>>(test, ',', result);
-
-    for(vector<string>::iterator it = result.begin(); it != result.end(); ++it)
-        cout << *it << " ";
+    sqlite3_close(db);
 
     return 0;
 }
