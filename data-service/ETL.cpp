@@ -15,6 +15,8 @@ using std::string;
 using std::vector;
 
 #include <regex>
+using std::regex;
+using std::regex_match;
 
 #include <ctime>
 using std::time;
@@ -24,14 +26,15 @@ using std::time_t;
 using std::back_inserter;
 using std::next;
 
-#include "sqlite3.h"
+#include <regex>
+
+#include <sqlite3.h>
 #include "ETL_sql.h"
 
 string read_file(const string &in_file_name);
 template <class C> void split(const string &str, const char &delimiter, C &out);
 void write_to_csv_file(const string &file_name, const string &output);
-map<string, vector<string>> csv_to_map(const string &file_name);
-void db_holdings_input(sqlite3 *db, map<string, vector<string>> raw_fund_data);
+map<string, vector<string>> csv_to_map(const string &file_name, bool (*row_schema_test)(const vector<string>&));
 int db_input(const string &in_file_name, sqlite3 *db, const string &fund_format);
 sqlite3 *open_db_connection(const string &db_file_name);
 
@@ -85,9 +88,46 @@ void write_to_csv_file(const string &file_name, const string &output)
     output_file.close();
 }
 
-map<string, vector<string>> csv_to_map(const string &file_name)
+bool is_number(const std::string& s)
 {
+    string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it))
+        ++it;
+    return !s.empty() && it == s.end();
+}
 
+bool ark_schema_test(const vector<string>& row)
+{
+    const regex us_date("^([1-9]|1[0-2])\\/([1-9]|[1-2][0-9]|3[0-1])\\/20[0-9]{2}$");
+    const regex eu_date("^([1-9]|[1-2][0-9]|3[0-1])\\/([1-9]|1[0-2])\\/20[0-9]{2}$");
+    
+    if(!regex_match(row[0], us_date) || !regex_match(row[0], eu_date))
+        return false;
+
+    const regex fund("^ARK[A-Z]$");
+
+    if(!regex_match(row[1], fund))
+        return false;
+
+    const regex numeric("^[0-9]+(\\.[0-9]+)?$");
+
+    if(!regex_match(row[5], numeric))
+        return false;
+
+    if(!regex_match(row[6], numeric))
+        return false;
+
+    if(!regex_match(row[7], numeric))
+        return false;
+
+    return true;
+}
+
+map<string, vector<string>> csv_to_map(
+    const string &file_name,
+    bool (*row_schema_test)(const vector<string>&)
+)
+{
     map<string, vector<string>> csv_map;
 
     string in_file_contents = read_file(file_name);
@@ -103,19 +143,12 @@ map<string, vector<string>> csv_to_map(const string &file_name)
 
     // Fill the vectors associated with each header with the corresponding
     // values, start iterating from 1 to avoid reading header into vectors.
-    //int counter = 2;
     for (vector<string>::iterator it = next(in_rows.begin()); it != in_rows.end(); ++it)
     {
         vector<string> line;
         split(*it, ',', line);
 
-        //cout << "Row " << counter << ": ";
-        //for(size_t i = 0; i != line.size(); ++i)
-        //    cout << line[i] << " ";
-        //cout << endl;
-        //counter++;
-
-        if (line.size() == headers.size())
+        if (row_schema_test(line))
         {
             for (size_t j = 0; j != headers.size(); ++j)
                 csv_map[headers[j]].push_back(line[j]);
@@ -137,7 +170,7 @@ void db_holdings_input(sqlite3 *db, map<string, vector<string>> raw_fund_data)
     sqlite3_stmt *pStmt = nullptr;
     sqlite3_prepare_v2(db, insert_into_holdings.c_str(), insert_into_holdings.size() + 1, &pStmt, nullptr);
 
-    for (size_t i = 1; i != raw_fund_data["fund"].size(); ++i)
+    for (size_t i = 0; i != raw_fund_data["fund"].size(); ++i)
     {
         sqlite3_bind_text(pStmt, 1, raw_fund_data["fund"][i].c_str(), raw_fund_data["fund"][i].size() + 1, NULL);
         sqlite3_bind_text(pStmt, 2, raw_fund_data["ticker"][i].c_str(), raw_fund_data["ticker"][i].size() + 1, NULL);
@@ -157,7 +190,7 @@ void db_holdings_input(sqlite3 *db, map<string, vector<string>> raw_fund_data)
 
 int db_input(const string &in_file_name, sqlite3 *db, const string &fund_format)
 {
-    map<string, vector<string>> fund_data = csv_to_map(in_file_name);
+    map<string, vector<string>> fund_data = csv_to_map(in_file_name, ark_schema_test);
     return 20;
 }
 
@@ -177,7 +210,7 @@ sqlite3 *open_db_connection(const string &db_file_name)
 
 int main()
 {
-    map<string, vector<string>> raw_fund_data = csv_to_map("ARK_INNOVATION_ETF_ARKK_HOLDINGS.csv");
+    map<string, vector<string>> raw_fund_data = csv_to_map("ARK_AUTONOMOUS_TECHNOLOGY_&_ROBOTICS_ETF_ARKQ_HOLDINGS.csv", ark_schema_test);
 
     // Pointer to SQLite connection
     sqlite3 *db = open_db_connection("noah.db");
