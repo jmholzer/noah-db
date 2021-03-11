@@ -98,6 +98,9 @@ bool is_number(const std::string& s)
 
 bool ark_schema_test(const vector<string>& row)
 {
+    if(row.size() < 8)
+        return false;
+
     const regex us_date("^([1-9]|1[0-2])\\/([1-9]|[1-2][0-9]|3[0-1])\\/20[0-9]{2}$");
     const regex eu_date("^([1-9]|[1-2][0-9]|3[0-1])\\/([1-9]|1[0-2])\\/20[0-9]{2}$");
     
