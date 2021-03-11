@@ -6,3 +6,8 @@ data-service/sqlite3/*
 data-service/sqlite-db/sqlite3.exe
 data-service/*.exe
 data-service/data/fund_csvs/*
+*.swp
+*~
+*.csv
+*.exe
+*.out

@@ -1,5 +1,5 @@
 ETL: ETL.cpp ETL_sql.cpp
-	g++ ETL.cpp ETL_sql.cpp -lsqlite3 -o ETL
+	g++ ETL.cpp ETL_sql.cpp -lsqlite3 -o ETL.out
 
 curl_compile: 
 	g++-10 -std=c++17 curl/curl.cpp -lcurl -o curl/curl.exe
