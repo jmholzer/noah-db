@@ -1,18 +1,8 @@
-ETL: ETL.cpp ETL_sql.cpp
-	g++ ETL.cpp ETL_sql.cpp -lsqlite3 -o ETL.out
+ETL: ETL.cpp 
+	g++-10 -std=c++17 ETL.cpp dl/dl.cpp db/db.cpp csv/csv.cpp -lsqlite3 -lcurl -o ETL.out
 
-curl_compile: 
-	g++-10 -std=c++17 curl/curl.cpp -lcurl -o curl/curl.exe
-curl_exe:
-	./curl/curl.exe
+requests_test_compile:
+	g++-10 -std=c++17 requests_test.cpp cURL/requests.cpp -lcurl -o request_test.out
 
-acurl_compile: 
-	g++-10 -std=c++17 curl/acurl.cpp -lcurl -o curl/acurl.exe 
-acurl_exe:
-	./curl/acurl.exe
-
-curl: curl_compile curl_exe
-
-acurl: acurl_compile acurl_exe
-
-all: curl ETL 
+requests_test_run:
+	./request_test.out
