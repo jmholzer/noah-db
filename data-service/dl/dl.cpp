@@ -22,14 +22,28 @@
 
 #include "dl.h"
 
-bool save_fund_data(fund target)
+std::vector<std::string> batch_dl(std::map<std::string, std::vector<std::string>> funds)
+{
+    std::vector<std::string> file_names;
+
+    for(size_t i = 0; i != funds["name"].size(); ++i)
+    {
+        std::string file_name = save_fund_data(funds["name"][i], funds["url"][i].c_str());
+        file_names.push_back(file_name);
+    }
+
+    return file_names;
+}
+
+std::string save_fund_data(std::string name, const char *url)
 {
     std::time_t t = std::time(0);
     std::tm* now = std::localtime(&t);
-    std::string file_name = target.name   
+    std::string file_name = "data/" + name
                             + "_" + std::to_string(now->tm_year + 1900)
                             + "_" + std::to_string(now->tm_mon + 1)
-                            + "_" + std::to_string(now->tm_mday);
+                            + "_" + std::to_string(now->tm_mday)
+                            + ".csv";
 
     FILE * out = fopen(file_name.c_str(), "w");
 
@@ -38,7 +52,7 @@ bool save_fund_data(fund target)
     CURL *curl;
     curl = curl_easy_init();
     CURLcode res;
-    curl_easy_setopt(curl, CURLOPT_URL, target.url);
+    curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, out);
 
     res = curl_easy_perform(curl);
@@ -47,11 +61,10 @@ bool save_fund_data(fund target)
         fprintf(stderr,"%s\n", curl_easy_strerror(res));
         curl_easy_cleanup(curl);
         curl_global_cleanup();
-        return false;
     }
 
     curl_easy_cleanup(curl);
     curl_global_cleanup();
 
-    return true;
+    return file_name;
 }

@@ -17,7 +17,7 @@ bool is_number(const std::string& s);
 bool ark_schema_test(const std::vector<std::string>& row);
 std::map<std::string, std::vector<std::string>> csv_to_map(
     const std::string &file_name,
-    bool (*row_schema_test)(const std::vector<std::string>&)
+    bool (*row_schema_test)(const std::vector<std::string>&) = NULL
 );
 
 #endif

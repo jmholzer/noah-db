@@ -3,6 +3,7 @@
 
 #include <regex>
 #include <ctime>
+#include <cstring>
 
 #include "dl/dl.h"
 #include "db/db.h"

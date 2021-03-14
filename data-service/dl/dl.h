@@ -3,14 +3,12 @@
 
 #include <curl/curl.h>
 #include <fstream>
+#include <map>
+#include <vector>
 #include <string>
 #include <ctime>
 
-struct fund {
-    const char* url;
-    std::string name;
-};
-
-bool save_fund_data(fund target);
+std::vector<std::string> batch_dl(std::map<std::string, std::vector<std::string>> funds);
+std::string save_fund_data(std::string name, const char *url);
 
 #endif

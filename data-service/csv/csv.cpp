@@ -7,6 +7,7 @@ std::string read_file(const std::string &in_file_name)
     if (!in_file)
     {
         std::cerr << "file open failed"
+                  << in_file_name
                   << "\n";
     }
 
@@ -107,15 +108,20 @@ std::map<std::string, std::vector<std::string>> csv_to_map(
 
     // Fill the std::vectors associated with each header with the corresponding
     // values, start iterating from 1 to avoid reading header into std::vectors.
-    for (std::vector<std::string>::iterator it = std::next(in_rows.begin()); it != in_rows.end(); ++it)
+    for (size_t i = 1; i != in_rows.size(); i++)
     {
         std::vector<std::string> line;
-        split(*it, ',', line);
+        if(!in_rows[i].empty())
+            split(in_rows[i], ',', line);
+        else
+            continue;
 
-        if (row_schema_test(line))
+        if (row_schema_test == NULL || row_schema_test(line))
         {
-            for (size_t j = 0; j != headers.size(); ++j)
+            for (size_t j = 0; j != line.size(); ++j)
+            {
                 csv_map[headers[j]].push_back(line[j]);
+            }
         }
         else
         {

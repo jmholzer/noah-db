@@ -11,3 +11,4 @@ data-service/data/fund_csvs/*
 *.csv
 *.exe
 *.out
+*/noah.db

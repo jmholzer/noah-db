@@ -1,5 +1,5 @@
 ETL: ETL.cpp 
-	g++-10 -std=c++17 ETL.cpp dl/dl.cpp db/db.cpp csv/csv.cpp -lsqlite3 -lcurl -o ETL.out
+	g++-10 -std=c++17 ETL.cpp dl/dl.cpp db/db.cpp csv/csv.cpp -lsqlite3 -lcurl -g -o ETL.out
 
 requests_test_compile:
 	g++-10 -std=c++17 requests_test.cpp cURL/requests.cpp -lcurl -o request_test.out
