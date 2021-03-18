@@ -33,7 +33,7 @@ const char *get_scrape_data(const char *url)
     std::string file_path;
     namespace fs = std::filesystem;
     file_path = std::filesystem::current_path();
-    file_path += "/python";
+    file_path += "/dl";
     setenv("PYTHONPATH", file_path.c_str(), 0);
 
     Py_Initialize();
@@ -43,7 +43,7 @@ const char *get_scrape_data(const char *url)
     // PyObject *path = PyObject_GetAttrString(sys, "path");
     // PyList_Append(path, PyUnicode_FromString("."));
 
-    pName = PyUnicode_FromString("s");
+    pName = PyUnicode_FromString("download");
     if (pName == NULL)
     {
         // std::cout << "n";
