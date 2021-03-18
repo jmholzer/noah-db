@@ -78,7 +78,11 @@ std::string save_fund_data(std::string name, const char *url)
 {
     std::time_t t = std::time(0);
     std::tm *now = std::localtime(&t);
-    std::string file_name = "data/" + name + "_" + std::to_string(now->tm_year + 1900) + "_" + std::to_string(now->tm_mon + 1) + "_" + std::to_string(now->tm_mday) + ".csv";
+    std::string file_name = "data/" + name + "_"
+                            + std::to_string(now->tm_year + 1900)
+                            + "_" + std::to_string(now->tm_mon + 1)
+                            + "_" + std::to_string(now->tm_mday)
+                            + ".csv";
     std::ofstream myfile;
     const char * data = get_scrape_data(url);
     myfile.open(file_name);
