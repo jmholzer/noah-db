@@ -22,7 +22,6 @@ void db_holdings_input(sqlite3 *db, std::map<std::string, std::vector<std::strin
     sqlite3_stmt *pStmt = nullptr;
     sqlite3_prepare_v2(db, insert_into_holdings.c_str(), insert_into_holdings.size() + 1, &pStmt, nullptr);
 
-
     for (size_t i = 0; i != raw_fund_data["fund"].size(); ++i)
     {
         sqlite3_bind_text(pStmt, 1, raw_fund_data["fund"][i].c_str(), -1, NULL);

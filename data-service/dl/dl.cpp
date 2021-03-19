@@ -21,14 +21,13 @@
  ***************************************************************************/
 
 #include "dl.h"
-// #include "../python/run_py.h"
 #include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
-#include <python3.6m/Python.h>
+#include <python3.8/Python.h>
 
-const char *get_scrape_data(const char *url)
+std::string get_scrape_data(const char *url)
 {
     std::string file_path;
     namespace fs = std::filesystem;
@@ -61,10 +60,10 @@ const char *get_scrape_data(const char *url)
             pValue = PyObject_CallObject(pFunc, pArgs);
         }
         auto result = _PyUnicode_AsString(pValue);
-        // std::cout << result << std::endl;
+        //std::cout << result << std::endl;
         std::string s(result);
         Py_Finalize();
-        return s.c_str();
+        return s;
     }
     else
     {
@@ -74,6 +73,7 @@ const char *get_scrape_data(const char *url)
         EXIT_FAILURE;
     }
 }
+
 std::string save_fund_data(std::string name, const char *url)
 {
     std::time_t t = std::time(0);
@@ -84,7 +84,8 @@ std::string save_fund_data(std::string name, const char *url)
                             + "_" + std::to_string(now->tm_mday)
                             + ".csv";
     std::ofstream myfile;
-    const char * data = get_scrape_data(url);
+    std::string data = get_scrape_data(url);
+    //std::cout << data;
     myfile.open(file_name);
     myfile << std::string(data);
     myfile.close();

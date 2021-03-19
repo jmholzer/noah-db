@@ -60,30 +60,36 @@ bool is_number(const std::string& s)
 
 bool ark_schema_test(const std::vector<std::string>& row)
 {
-    if(row.size() < 8)
+    if(row.size() < 8){
         return false;
+    }
 
     const std::regex us_date("^([1-9]|1[0-2])\\/([1-9]|[1-2][0-9]|3[0-1])\\/20[0-9]{2}$");
     const std::regex eu_date("^([1-9]|[1-2][0-9]|3[0-1])\\/([1-9]|1[0-2])\\/20[0-9]{2}$");
     
-    if(!std::regex_match(row[0], us_date) || !std::regex_match(row[0], eu_date))
+    if(!std::regex_match(row[0], us_date) && !std::regex_match(row[0], eu_date)){
         return false;
+    }
 
     const std::regex fund("^ARK[A-Z]$");
 
-    if(!std::regex_match(row[1], fund))
+    if(!std::regex_match(row[1], fund)){
         return false;
+    }
 
     const std::regex numeric("^[0-9]+(\\.[0-9]+)?$");
 
-    if(!std::regex_match(row[5], numeric))
+    if(!std::regex_match(row[5], numeric)){
         return false;
+    }
 
-    if(!std::regex_match(row[6], numeric))
+    if(!std::regex_match(row[6], numeric)){
         return false;
+    }
 
-    if(!std::regex_match(row[7], numeric))
+    if(!std::regex_match(row[7], numeric)){
         return false;
+    }
 
     return true;
 }

@@ -10,7 +10,6 @@ int main()
 
     for(size_t i = 0; i != file_names.size(); ++i)
     {
-        //std::cout << file_names[i] << std::endl;
         std::map<std::string, std::vector<std::string>> raw_fund_data = csv_to_map(file_names[i], ark_schema_test);
         db_holdings_input(db, raw_fund_data);
     }
